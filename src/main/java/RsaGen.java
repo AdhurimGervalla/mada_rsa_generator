@@ -26,23 +26,30 @@ public class RsaGen {
         return new BigInteger[]{p, q};
     }
 
+    /**
+     * e element von Zφ(n) -> Alle Zahlen die zu φ(n) teilerfremd sind
+     * φ(n) -> Euklidische φ-Funktion
+     * φ(p*q) = (p - 1) * p^0 * (q - 1) * q^0 = (p - 1) * (q - 1)
+     * @param primaries
+     * @return
+     */
     public static BigInteger getM(BigInteger[] primaries) {
-        // e element von Ze(n) -> Alle Zahlen die zu e(n) teilerfremd sind
-        // e(n) -> Euklidische e-Funktion
-        // e(p*q) = (p - 1) * p^0 * (q - 1) * q^0 = (p - 1) * (q - 1)
         BigInteger e_from_n = (primaries[0].subtract(BigInteger.ONE)).multiply((primaries[1].subtract(BigInteger.ONE)));
 
         return e_from_n;
     }
 
+    /**
+     * Erhalte eine Zahl e für die gilt dass ggT(e, φ(n)) = 1
+     * @param primaries
+     * @return
+     */
     public static BigInteger getE(BigInteger[] primaries) {
-        // e element von Ze(n) -> Alle Zahlen die zu e(n) teilerfremd sind
-        // e(n) -> Euklidische e-Funktion
-        // e(p*q) = (p - 1) * p^0 * (q - 1) * q^0 = (p - 1) * (q - 1)
         BigInteger e_from_n = getM(primaries);
 
         BigInteger e = BigInteger.TWO;
-        while (!e.gcd(e_from_n).equals(BigInteger.ONE)) {
+        // solange nicht gilt ggT(e, φ(n)) = 1 -> erhöhe die Zahl e
+        while (e.gcd(e_from_n).compareTo(BigInteger.ONE) != 0) {
             e = e.add(BigInteger.ONE);
         }
 
@@ -52,12 +59,17 @@ public class RsaGen {
     }
 
     /**
+     * Diese Funktion liefert eine Zahl d für die gilt dass d element von Zφ(n) mit e * d kongruent 1 (mod φ(n))
+     * Um diese Zahl zu erhalten, verwendet diese Funktion den erweiterten euklidischen Algorithmus.
+     * @param primaries
+     * @param e
      * @return
      */
     public static BigInteger getD(BigInteger[] primaries, BigInteger e) {
         // Es soll ein geeignetes e gewählt werden und dazu das
         // passende d bestimmt werden.
         // Dazu ist insbesondere der erweiterte euklidische Algorithmus zu implementieren.
+
         BigInteger m = getM(primaries);
 
         BigInteger a = m;
@@ -88,9 +100,6 @@ public class RsaGen {
             r = a.mod(b);
         }
 
-        // xo * n + y0 * e
-
-        // if ( y0 < 0) y0 = y0 mod m;
         if (y0.compareTo(BigInteger.ZERO) < 0) y0 = y0.mod(m);
 
         return y0;
@@ -104,7 +113,6 @@ public class RsaGen {
      */
     public static void saveRsaKeys(BigInteger n, BigInteger e, BigInteger d) {
         // Der private Schlussel soll in einer Datei sk.txt in der Form (n, d) mit n und d in Dezimaldarstellung abgespeichert werden
-
         // source code for how to write a file in java took from here: https://www.w3schools.com/java/java_files_create.asp
         try {
             File skFile = new File(SECRET_KEY_FILE_NAME);
@@ -137,5 +145,21 @@ public class RsaGen {
     public static BigInteger getPrime(int bitLength) {
         Random random = new Random();
         return BigInteger.probablePrime(bitLength, random);
+    }
+
+    /**
+     * Löscht alle temporären RSA Dateien
+     */
+    public static void deleteRsaFiles() {
+        File pk = new File("pk.txt");
+        File sk = new File("sk.txt");
+        File chiffre = new File("chiffre.txt");
+        File dText = new File("d-text.txt");
+
+        System.out.println("First delete Files");
+        if(pk.delete()) System.out.println("pk File deleted");
+        if(sk.delete()) System.out.println("sk File deleted");
+        if(chiffre.delete()) System.out.println("chiffre File deleted");
+        if(dText.delete()) System.out.println("dText File deleted");
     }
 }
