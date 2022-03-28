@@ -45,14 +45,15 @@ public class RsaGen {
      * @return
      */
     public static BigInteger getE(BigInteger[] primaries) {
-        BigInteger e_from_n = getM(primaries);
+        BigInteger e_from_n = getM(primaries); // holt sich m
 
-        BigInteger e = BigInteger.TWO;
+        BigInteger e = BigInteger.TWO; // Startwert 2
         // solange nicht gilt ggT(e, φ(n)) = 1 -> erhöhe die Zahl e
         while (e.gcd(e_from_n).compareTo(BigInteger.ONE) != 0) {
             e = e.add(BigInteger.ONE);
         }
 
+        // Prüft ob die Bedingung für e (ggT(e, φ(n)) = 1) erfüllt ist
         if (e.gcd(e_from_n).compareTo(BigInteger.ONE) == 0) return e;
 
         return BigInteger.ONE;
@@ -72,6 +73,7 @@ public class RsaGen {
 
         BigInteger m = getM(primaries);
 
+        // Initialisierung der Variabel für die Anwendung des erw. eukl. Alg.
         BigInteger a = m;
         BigInteger b = e;
         BigInteger x0 = BigInteger.ONE;
@@ -79,9 +81,11 @@ public class RsaGen {
         BigInteger x1 = BigInteger.ZERO;
         BigInteger y1 = BigInteger.ONE;
 
+        // Anfangen mit Berechnung
         BigInteger q = a.divide(b);
         BigInteger r = a.mod(b);
 
+        // Wiederhole diesen Vorgang solange, wie b nicht 0 ist
         while (!b.equals(BigInteger.ZERO)) {
             a = b;
             b = r;
@@ -100,6 +104,7 @@ public class RsaGen {
             r = a.mod(b);
         }
 
+        // wenn y0 eine negative Zahl ist können wir sie zu einer gültigen positiven Zahl umwandeln
         if (y0.compareTo(BigInteger.ZERO) < 0) y0 = y0.mod(m);
 
         return y0;
@@ -114,6 +119,9 @@ public class RsaGen {
     public static void saveRsaKeys(BigInteger n, BigInteger e, BigInteger d) {
         // Der private Schlussel soll in einer Datei sk.txt in der Form (n, d) mit n und d in Dezimaldarstellung abgespeichert werden
         // source code for how to write a file in java took from here: https://www.w3schools.com/java/java_files_create.asp
+
+        // Macht nichts besonderes. Speicher nur die Werte für n,e und d in verschiedene Files.
+        // n,e und wurden in vorherigen Methoden bereits berechnet.
         try {
             File skFile = new File(SECRET_KEY_FILE_NAME);
             File pkFile = new File(PUBLIC_KEY_FILE_NAME);
@@ -142,6 +150,11 @@ public class RsaGen {
         }
     }
 
+    /**
+     * Returnt eine Primzahl
+     * @param bitLength
+     * @return
+     */
     public static BigInteger getPrime(int bitLength) {
         Random random = new Random();
         return BigInteger.probablePrime(bitLength, random);
